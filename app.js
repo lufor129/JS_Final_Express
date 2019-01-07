@@ -7,6 +7,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
+
 var app = express();
 
 // view engine setup
@@ -40,9 +41,24 @@ app.all('*', (req, res, next) => {
 });
 
 app.get("/bus",function(req,res,next){
+  var busLine = req.query.line;
   axios.get("http://ibus.tbkc.gov.tw/xmlbus/StaticData/GetRoute.xml").then((response)=>{
     let temp = parser.toJson(response.data,{object:true});
-    res.send(temp);
+    if(busLine == null){
+      res.send(temp);
+    }else if(busLine == 'all'){
+      res.send(temp.BusDynInfo.BusInfo.Route);
+    }else if(busLine == '黃'){
+      let result = temp.BusDynInfo.BusInfo.Route.filter((bus)=>{
+        return bus['nameZh'].includes("黃1") || bus['nameZh'].includes("黃2");
+      })
+      res.send(result);
+    }else{
+      let result = temp.BusDynInfo.BusInfo.Route.filter((bus)=>{
+        return bus['nameZh'].includes(busLine);
+      })
+      res.send(result);
+    }
   })
 })
 
@@ -56,9 +72,30 @@ app.get("/station",function(req,res,next){
 
 app.get("/route",function(req,res,next){
   let stationID = req.query.id;
+  let isFlutter = req.query.isFlutter;
   axios.get(`http://ibus.tbkc.gov.tw/xmlbus/GetEstimateTime.xml?routeIds=${stationID}`).then((response)=>{
     let temp = parser.toJson(response.data,{object:true,arrayNotation:true});
-    res.send(temp);
+    if(isFlutter==null){
+      res.send(temp);
+    }else{  
+      let data = temp.BusDynInfo[0].BusInfo[0].Route[0].EstimateTime;
+      data.map((item)=>{
+        if(Object.keys(item.ests[0]).length!=0 && item.comeTime!=''){
+          item["lastTime"] = item.ests[0].est[0].est;
+          item["nextTime"] = item.comeTime;
+          item["nextBus"] = item.carId;
+        }else if(item.comeTime!=''){
+          item["nextTime"] = item.comeTime;
+          item["lastTime"] = item.comeTime;
+          item["nextBus"] = item.comeCarid;
+        }else{
+          item["nextTime"] = "末班車已發";
+          item["lastTime"] = "";
+          item["nextBus"] = "";
+        }
+      });
+      res.send(data);
+    }
   })
 })
 
