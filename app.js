@@ -31,7 +31,6 @@ app.all('*', (req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization, Accept,X-Requested-With,x-csrf-token');
   res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Credentials', true);
-  // 這裡不能用 * 號, 要改成 domain 的方式才能設置 cookies
   res.header('Access-Control-Allow-Origin', req.headers.origin);
   if (req.method === 'OPTIONS') {
     res.send(200);
@@ -51,6 +50,11 @@ app.get("/bus",function(req,res,next){
     }else if(busLine == '黃'){
       let result = temp.BusDynInfo.BusInfo.Route.filter((bus)=>{
         return bus['nameZh'].includes("黃1") || bus['nameZh'].includes("黃2");
+      })
+      res.send(result);
+    }else if(busLine == '快線'){
+      let result = temp.BusDynInfo.BusInfo.Route.filter((bus)=>{
+        return bus['nameZh'].includes("幹線") || bus['nameZh'].includes("快線");
       })
       res.send(result);
     }else{
