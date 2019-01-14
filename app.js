@@ -47,9 +47,9 @@ app.get("/bus",function(req,res,next){
       res.send(temp);
     }else if(busLine == 'all'){
       res.send(temp.BusDynInfo.BusInfo.Route);
-    }else if(busLine == '黃'){
+    }else if(busLine == '橘'){
       let result = temp.BusDynInfo.BusInfo.Route.filter((bus)=>{
-        return bus['nameZh'].includes("黃1") || bus['nameZh'].includes("黃2");
+        return bus['nameZh'].includes("黃1") || bus['nameZh'].includes("黃2") || bus['nameZh'].includes("橘");
       })
       res.send(result);
     }else if(busLine == '快線'){
